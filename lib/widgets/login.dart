@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../amplifyconfiguration.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -30,15 +33,9 @@ class _LoginState extends State<Login> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       await prefs.setString("token", token);
-      var response = await post(
-          Uri.parse(
-              'https://jgpd7yrm48.execute-api.eu-central-1.amazonaws.com/prod/login'),
+      var response = await post(Uri.parse('${dotenv.env['BASE_URI']}login'),
           headers: {'Authorization': token});
-
-      var decodedResponse =
-          Map<String, dynamic>.from(json.decode(response.body));
-      print(decodedResponse);
-    } on AuthException catch (e) {
+    } catch (e) {
       if (e.message.contains('already a user which is signed in')) {
         await Amplify.Auth.signOut();
         return 'Problem logging in. Please try again.';

@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart';
+
+import '../amplifyconfiguration.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -12,38 +15,36 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  AuthUser _user;
-  // String _token;
   List _users;
 
   @override
   void initState() {
     super.initState();
+    Amplify.Auth.fetchAuthSession(
+            options: CognitoSessionOptions(getAWSCredentials: true))
+        .then((session) {
+      var token = (session as CognitoAuthSession).userPoolTokens.idToken;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.clear();
+        prefs.setString("token", token);
+      });
+    });
     _usersList(context).then((u) {
       setState(() {
         _users = u;
       });
-    });
-    Amplify.Auth.getCurrentUser().then((user) {
-      setState(() {
-        _user = user;
-      });
-    }).catchError((error) {
-      print((error as AuthException).message);
     });
   }
 
   _usersList(context) async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token");
-    var response = await get(
-        Uri.parse(
-            'https://jgpd7yrm48.execute-api.eu-central-1.amazonaws.com/prod/users'),
+    var response = await get(Uri.parse('${dotenv.env['BASE_URI']}users'),
         headers: {'Authorization': token});
 
     var decodedResponse = Map<String, dynamic>.from(json.decode(response.body));
     var usersResponse = List<dynamic>.from(decodedResponse['Items']);
-
+    print(decodedResponse);
     var users = [];
     for (var i = 0; i < usersResponse.length; i++) {
       users.add(ListTile(

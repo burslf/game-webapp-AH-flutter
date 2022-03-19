@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
+
+import '../amplifyconfiguration.dart';
 
 class ProfileScreen extends StatefulWidget {
   var user;
@@ -98,11 +101,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _nicknameField = widget.user['nickname'];
       _profileUrl =
           widget.user['profilePic'] != null ? widget.user['profilePic'] : '';
+      _profilePicWidget = CircleAvatar(
+        backgroundImage: NetworkImage(_profileUrl),
+        minRadius: 45,
+      );
     });
-    _profilePicWidget = CircleAvatar(
-      backgroundImage: NetworkImage(_profileUrl),
-      minRadius: 45,
-    );
     Amplify.Auth.getCurrentUser().then((user) {
       if (user.userId == widget.user['id']) {
         setState(() {
@@ -120,8 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }).catchError((error) {
       print((error as AuthException).message);
     });
-
-    // }
   }
 
   uploadPicture() async {
@@ -132,9 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result != null) {
       var filePath = result.files.first;
       var base64File = base64Encode(filePath.bytes);
-      await post(
-          Uri.parse(
-              'https://jgpd7yrm48.execute-api.eu-central-1.amazonaws.com/prod/userProfilePic'),
+      await post(Uri.parse('${dotenv.env['BASE_URI']}userProfilePic'),
           headers: {'Authorization': token},
           body: json.encode({'file': 'data:image/png;base64,$base64File'}));
       setState(() {
@@ -150,15 +149,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   uploadNewData() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token");
-    var response = await post(
-        Uri.parse(
-            'https://jgpd7yrm48.execute-api.eu-central-1.amazonaws.com/prod/registerUser'),
-        headers: {'Authorization': token},
-        body: json.encode({
-          "firstName": _firstNameField,
-          "lastName": _lastNameField,
-          "nickname": _nicknameField
-        }));
+    var response =
+        await post(Uri.parse('${dotenv.env['BASE_URI']}registerUser'),
+            headers: {'Authorization': token},
+            body: json.encode({
+              "firstName": _firstNameField,
+              "lastName": _lastNameField,
+              "nickname": _nicknameField
+            }));
     var decodedResponse = Map<String, dynamic>.from(json.decode(response.body));
     print(decodedResponse);
   }

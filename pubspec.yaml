@@ -1,0 +1,30 @@
+name: game_webapp_AH_flutter
+description: A signup and login flow built with AWS Amplify and Flutter
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  amplify_flutter: '<1.0.0'
+  amplify_auth_cognito: '<1.0.0'
+  amplify_analytics_pinpoint: '<1.0.0'
+  cupertino_icons: ^1.0.1
+  flutter_login: ^3.2.0
+  shared_preferences: ^2.0.13
+  http: ^0.13.4
+  file_picker: ^4.5.1
+   
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
